@@ -1,0 +1,67 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# Rider files
+.idea/
+
+# User-specific files
+*.userprefs
+
+# NuGet packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+!**/packages/build/**/build/
+# Publish results
+publish/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Local database files
+*.db
+*.db-journal
+*.sqlite
+
+# DotNet Core specific files
+project.lock.json
+project.fragment.lock.json
+
+# Logs
+*.log
+log/
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Others
+*.class
+*.jar
+*.pdb
+*.dll
+*.exe
+*.app
+
+# macOS files
+.DS_Store
+
+# Windows files
+Thumb​⬤

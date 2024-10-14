@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicSupermarket", "BasicSupermarket\BasicSupermarket.csproj", "{47F478F4-83AD-468D-B92B-52397E8D2779}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{47F478F4-83AD-468D-B92B-52397E8D2779}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47F478F4-83AD-468D-B92B-52397E8D2779}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47F478F4-83AD-468D-B92B-52397E8D2779}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47F478F4-83AD-468D-B92B-52397E8D2779}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
