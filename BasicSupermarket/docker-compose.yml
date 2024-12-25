@@ -3,12 +3,12 @@ version: '3.8'
 services:
   mysql:
     image: mysql:latest
-    container_name: mysql-container
+    container_name: mysql-db
     environment:
-      MYSQL_ROOT_PASSWORD: Development2024
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: supermarketdb
-      MYSQL_USER: root
-      MYSQL_PASSWORD: Development2024
+      MYSQL_USER: rootuser
+      MYSQL_PASSWORD: rootpassword
     ports:
       - "3306:3306"
     volumes:
