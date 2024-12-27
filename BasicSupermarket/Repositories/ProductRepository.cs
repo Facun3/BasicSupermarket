@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ public class ProductRepository: IProductRepository
 {
     private readonly AppDbContext _context;
 
-    private ProductRepository(AppDbContext context)
+    public ProductRepository(AppDbContext context)
     {
         _context = context;
     }
@@ -23,21 +24,28 @@ public class ProductRepository: IProductRepository
         return await _context.Products.ToListAsync();
     }
 
-    public async Task<int> AddAsync(Product product)
+    public Task<IQueryable<Product>> SearchAsync(Expression<Func<Product, bool>> predicate)
     {
-        _context.Products.Add(product);
-        return await _context.SaveChangesAsync();
+        return Task.FromResult(_context.Products.Where(predicate));
     }
 
-    public async Task<int> UpdateAsync(Product product)
+    public async Task<Product> AddAsync(Product product)
+    {
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+        return product;
+    }
+
+    public Task<Product> UpdateAsync(Product product)
     {
         _context.Products.Update(product);
-        return await _context.SaveChangesAsync();
+        _context.SaveChangesAsync();
+        return Task.FromResult(product);
     }
 
     public Task<int> DeleteAsync(int id)
     {
-        _context.Products.Remove(new Product() { Id = id });
+        _context.Products.Remove(new Product { Id = id });
         return _context.SaveChangesAsync();
     }
 }

@@ -1,5 +1,8 @@
+using BasicSupermarket.Domain.Dtos;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Persistence;
+using BasicSupermarket.Repositories;
+using BasicSupermarket.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,20 +12,20 @@ namespace BasicSupermarket.Controllers;
 [ApiController]
 public class ProductsController: ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IProductService _productService;
     
-    public ProductsController(AppDbContext context)
+    public ProductsController(IProductService productService)
     {
-        _context = context;
+        _productService = productService;
     }
     
-    [HttpGet("all")]
-    public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+    [HttpGet("")]
+    public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetProductsAsync(string? name = null, int page = 1, int pageSize = 10)
     {
         try
         {
-            List<Product> response = await _context.Products.ToListAsync();
-            return response.Count > 0 ? Ok(response) : NoContent(); 
+            var results = await _productService.GetProducts(name, page, pageSize);
+            return Ok(results);
         }
         catch (Exception ex)
         {
@@ -31,55 +34,60 @@ public class ProductsController: ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetProduct(int id)
+    public async Task<ActionResult<ProductResponseDto>> GetProduct(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _productService.GetProduct(id);
         if (product == null) return NotFound();
         return product;
     }
 
     [HttpPost]
-    public async Task<ActionResult<Product>> PostProduct(Product product)
+    public async Task<ActionResult<ProductResponseDto>> PostProduct([FromBody] CreateProductRequestDto productRequestDto)
     {
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        
+        var newProduct = await _productService.PostProduct(productRequestDto);
+        
+        return CreatedAtAction(nameof(GetProduct), new { id = newProduct.Id }, newProduct);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutProduct(int id, Product product)
+    public async Task<IActionResult> PutProduct(UpdateProductRequestDto productRequestDto)
     {
-        if (id != product.Id) return BadRequest();
-
-        _context.Entry(product).State = EntityState.Modified;
         try
         {
-            await _context.SaveChangesAsync();
+            if(!ModelState.IsValid) return BadRequest(ModelState);
+            if(!ProductExists(productRequestDto.Id)) return NotFound();
+            return Ok(await _productService.PutProduct(productRequestDto));
         }
-        catch (DbUpdateConcurrencyException)
+        catch (Exception ex)
         {
-            if (!ProductExists(id)) return NotFound();
-            else throw;
+            return BadRequest(ex.Message);
         }
-
-        return NoContent();
     }
-
+    
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        var product = await _context.Products.FindAsync(id);
-        if (product == null) return NotFound();
+        if (_productService.GetProduct(id).Result == null)
+        {
+            return NotFound();
+        }
 
-        _context.Products.Remove(product);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        try
+        {
+            var result = await _productService.DeleteProduct(id);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
+
 
     private bool ProductExists(int id)
     {
-        return _context.Products.Any(e => e.Id == id);
+        return _productService.GetProduct(id).Result == null;
     }
-    
 }

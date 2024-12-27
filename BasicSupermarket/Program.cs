@@ -1,4 +1,5 @@
 using BasicSupermarket;
+using BasicSupermarket.Config;
 using BasicSupermarket.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
+//Extension method for services configuration
+builder.Services.ConfigureServices();
+
 builder.Services.AddControllers();
+
+builder.Services.AddFluentValidation();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

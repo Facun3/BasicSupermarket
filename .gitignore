@@ -37,6 +37,8 @@ publish/
 *.db
 *.db-journal
 *.sqlite
+*.mdf
+*.ldf
 
 # DotNet Core specific files
 project.lock.json

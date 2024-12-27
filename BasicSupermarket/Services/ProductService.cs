@@ -1,6 +1,9 @@
+using System.Linq.Expressions;
+using BasicSupermarket.Domain.Dtos;
 using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Domain.Mapping;
 using BasicSupermarket.Repositories;
-using Microsoft.AspNetCore.Mvc;
+
 
 namespace BasicSupermarket.Services;
 
@@ -8,20 +11,32 @@ public class ProductService: IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly ILogger<ProductService> _logger;
-
-
-    private ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
+    
+    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
     {
         _productRepository = productRepository;
         _logger = logger;
     }
     
-    public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+    public async Task<IEnumerable<ProductResponseDto>> GetProducts(string? name = null, int? page = 1, int? pageSize = 10)
     {
         try
         {
-            IEnumerable<Product> products = await _productRepository.GetAllAsync();
-            return products.ToList();
+            page = page ?? 1;
+            pageSize = pageSize ?? 10;
+            
+            Expression<Func<Product, bool>> predicate = product => 
+                string.IsNullOrEmpty(name) || product.Name.Contains(name) || product.Description.Contains(name);
+
+            IQueryable<Product> queriedProducts = await _productRepository.SearchAsync(predicate);
+            
+            // Apply pagination
+            var paginatedProducts = queriedProducts
+                .Skip((page.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value).ToList();
+            
+            return ProductMapper.FromProductToProductResponseDto(paginatedProducts);
+            
         }
 
         catch (Exception ex)
@@ -32,23 +47,64 @@ public class ProductService: IProductService
         }
     }
 
-    public Task<ActionResult<Product>> GetProduct(int id)
+    public async Task<ProductResponseDto?> GetProduct(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            return product == null ? null : ProductMapper.FromProductToProductResponseDto(product);
+        }
+        catch (Exception ex)
+        {
+            String err = ex.Message;
+            _logger.LogError(ex, ex.Message);
+            throw new ApplicationException(err);
+        }
+        
     }
 
-    public Task<ActionResult<Product>> PostProduct(Product product)
+    public async Task<ProductResponseDto> PostProduct(CreateProductRequestDto product)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var newProduct = await _productRepository.AddAsync(ProductMapper.FromCreateProductRequestDtoToProduct(product));
+            return ProductMapper.FromProductToProductResponseDto(newProduct);
+        }
+        catch (Exception ex)
+        {
+            String err = ex.Message;
+            _logger.LogError(ex, ex.Message);
+            throw new ApplicationException(err);
+        }
     }
 
-    public Task<IActionResult> PutProduct(int id, Product product)
+    public async Task<ProductResponseDto> PutProduct(UpdateProductRequestDto productRequestDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            //TODO: Add some validations here
+            Product updateProduct = await _productRepository.UpdateAsync(ProductMapper.FromUpdateProductRequestDtoToProduct(productRequestDto));
+            return ProductMapper.FromProductToProductResponseDto(updateProduct);
+        }
+        catch (Exception ex)
+        {
+            String err = ex.Message;
+            _logger.LogError(ex, ex.Message);
+            throw new ApplicationException(err);
+        }
     }
 
-    public Task<IActionResult> DeleteProduct(int id)
+    public Task<int> DeleteProduct(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return _productRepository.DeleteAsync(id);
+        }
+        catch (Exception ex)
+        {
+            String err = ex.Message;
+            _logger.LogError(ex, ex.Message);
+            throw new ApplicationException(err);
+        }
     }
 }
