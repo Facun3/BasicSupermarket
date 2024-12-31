@@ -31,16 +31,21 @@ public class ProductRepository: IProductRepository
 
     public async Task<Product> AddAsync(Product product)
     {
+        var category = await _context.Categories.FindAsync(product.CategoryId);
+        if (category != null)
+        {
+            product.Category = category;
+        }
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
         return product;
     }
 
-    public Task<Product> UpdateAsync(Product product)
+    public async Task<Product> UpdateAsync(Product product)
     {
         _context.Products.Update(product);
-        _context.SaveChangesAsync();
-        return Task.FromResult(product);
+        await _context.SaveChangesAsync();
+        return product;
     }
 
     public Task<int> DeleteAsync(int id)

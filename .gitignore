@@ -16,6 +16,9 @@ riderModule.iml
 # Rider files
 .idea/
 
+#EF Migrations
+.migrations/*
+
 # User-specific files
 *.userprefs
 

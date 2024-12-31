@@ -1,10 +1,6 @@
-using BasicSupermarket.Domain.Dtos;
-using BasicSupermarket.Domain.Entities;
-using BasicSupermarket.Persistence;
-using BasicSupermarket.Repositories;
+using BasicSupermarket.Domain.Dto;
 using BasicSupermarket.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BasicSupermarket.Controllers;
 
@@ -48,17 +44,16 @@ public class ProductsController: ControllerBase
         
         var newProduct = await _productService.PostProduct(productRequestDto);
         
-        return CreatedAtAction(nameof(GetProduct), new { id = newProduct.Id }, newProduct);
+        return Created($"/api/products/{newProduct.Id}", newProduct);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutProduct(UpdateProductRequestDto productRequestDto)
+    public async Task<IActionResult> PutProduct(int id, [FromBody ]UpdateProductRequestDto productRequestDto)
     {
         try
         {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
-            if(!ProductExists(productRequestDto.Id)) return NotFound();
-            return Ok(await _productService.PutProduct(productRequestDto));
+            if(!ProductExists(id)) return NotFound();
+            return Ok(await _productService.PutProduct(id, productRequestDto));
         }
         catch (Exception ex)
         {

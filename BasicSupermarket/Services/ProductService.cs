@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using BasicSupermarket.Domain.Dtos;
+using BasicSupermarket.Domain.Dto;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Domain.Mapping;
 using BasicSupermarket.Repositories;
@@ -18,7 +18,7 @@ public class ProductService: IProductService
         _logger = logger;
     }
     
-    public async Task<IEnumerable<ProductResponseDto>> GetProducts(string? name = null, int? page = 1, int? pageSize = 10)
+    public async Task<IEnumerable<ProductResponseDto>> GetProducts(string? name , int? page = 1, int? pageSize = 10)
     {
         try
         {
@@ -31,12 +31,12 @@ public class ProductService: IProductService
             IQueryable<Product> queriedProducts = await _productRepository.SearchAsync(predicate);
             
             // Apply pagination
-            var paginatedProducts = queriedProducts
+            List<Product> paginatedProducts = queriedProducts
                 .Skip((page.Value - 1) * pageSize.Value)
                 .Take(pageSize.Value).ToList();
-            
-            return ProductMapper.FromProductToProductResponseDto(paginatedProducts);
-            
+            var response = ProductMapper.FromProductToProductResponseDto(paginatedProducts);
+            return response;
+
         }
 
         catch (Exception ex)
@@ -78,12 +78,12 @@ public class ProductService: IProductService
         }
     }
 
-    public async Task<ProductResponseDto> PutProduct(UpdateProductRequestDto productRequestDto)
+    public async Task<ProductResponseDto> PutProduct(int id, UpdateProductRequestDto productRequestDto)
     {
         try
         {
             //TODO: Add some validations here
-            Product updateProduct = await _productRepository.UpdateAsync(ProductMapper.FromUpdateProductRequestDtoToProduct(productRequestDto));
+            Product updateProduct = await _productRepository.UpdateAsync(ProductMapper.FromUpdateProductRequestDtoToProduct(id, productRequestDto));
             return ProductMapper.FromProductToProductResponseDto(updateProduct);
         }
         catch (Exception ex)
