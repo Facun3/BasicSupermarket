@@ -19,10 +19,11 @@ public class CategoryRepository : ICategoryRepository
         throw new NotImplementedException();
     }
 
-    public Task<Category> AddAsync(Category entity)
+    public async Task<Category> AddAsync(Category entity)
     {
-        var newEntity = _context.Categories.Add(entity).Entity;
-        return Task.FromResult(newEntity);
+        _context.Categories.Add(entity);
+        await _context.SaveChangesAsync();
+        return entity;
     }
 
     public Task<Category?> GetByIdAsync(int id)
