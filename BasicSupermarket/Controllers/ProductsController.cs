@@ -1,12 +1,11 @@
+using BasicSupermarket.Domain.Services;
+using BasicSupermarket.Domain.Communication;
 using BasicSupermarket.Domain.Dto;
-using BasicSupermarket.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BasicSupermarket.Controllers;
 
-[Route("api/[controller]")]
-[ApiController]
-public class ProductsController: ControllerBase
+public class ProductsController: BaseApiController
 {
     private readonly IProductService _productService;
     
@@ -15,12 +14,13 @@ public class ProductsController: ControllerBase
         _productService = productService;
     }
     
-    [HttpGet("")]
-    public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetProductsAsync(string? name = null, int page = 1, int pageSize = 10)
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ProductResponseDto>), 200)]
+    public async Task<ActionResult<IEnumerable<ProductResponseDto>>> ListAsync(string? name = null, int page = 1, int pageSize = 10)
     {
         try
         {
-            var results = await _productService.GetProducts(name, page, pageSize);
+            var results = await _productService.ListAsync(new ProductQuery{SearchFor = name, Page = page, PageSize = pageSize });
             return Ok(results);
         }
         catch (Exception ex)
@@ -30,59 +30,42 @@ public class ProductsController: ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ProductResponseDto>> GetProduct(int id)
+    [ProducesResponseType(typeof(ProductResponseDto), 200)]
+    [ProducesResponseType(typeof(ErrorResponseDto), 400)]
+    public async Task<ActionResult<ProductResponseDto>> GetByIdAsync(int id)
     {
-        var product = await _productService.GetProduct(id);
-        if (product == null) return NotFound();
-        return product;
+        var result = await _productService.GetByIdAsync(id);
+        if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
+        return Ok(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ProductResponseDto>> PostProduct([FromBody] CreateProductRequestDto productRequestDto)
+    [ProducesResponseType(typeof(ProductResponseDto), 201)]
+    [ProducesResponseType(typeof(ErrorResponseDto), 400)]
+    public async Task<IActionResult> CreateAsync([FromBody] CreateProductRequestDto productRequestDto)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        
-        var newProduct = await _productService.PostProduct(productRequestDto);
-        
-        return Created($"/api/products/{newProduct.Id}", newProduct);
+        var result = await _productService.CreateAsync(productRequestDto);
+        if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
+        return Ok(result);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutProduct(int id, [FromBody ]UpdateProductRequestDto productRequestDto)
+    [ProducesResponseType(typeof(ProductResponseDto), 201)]
+    [ProducesResponseType(typeof(ErrorResponseDto), 400)]
+    public async Task<IActionResult> Update(int id, [FromBody ]UpdateProductRequestDto productRequestDto)
     {
-        try
-        {
-            if(!ProductExists(id)) return NotFound();
-            return Ok(await _productService.PutProduct(id, productRequestDto));
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _productService.UpdateAsync(id, productRequestDto);
+        if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
+        return Ok(result);
     }
     
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProduct(int id)
+    [ProducesResponseType(typeof(ProductResponseDto), 200)]
+    [ProducesResponseType(typeof(ErrorResponseDto), 400)]
+    public async Task<IActionResult> Delete(int id)
     {
-        if (_productService.GetProduct(id).Result == null)
-        {
-            return NotFound();
-        }
-
-        try
-        {
-            var result = await _productService.DeleteProduct(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-
-    private bool ProductExists(int id)
-    {
-        return _productService.GetProduct(id).Result == null;
+        var result = await _productService.DeleteAsync(id);
+        if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
+        return Ok(result);
     }
 }

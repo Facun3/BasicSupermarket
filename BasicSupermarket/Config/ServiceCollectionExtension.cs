@@ -1,4 +1,6 @@
 using System.Reflection;
+using BasicSupermarket.Domain.Services;
+using BasicSupermarket.Persistence.Repositories;
 using BasicSupermarket.Repositories;
 using BasicSupermarket.Services;
 using FluentValidation;
@@ -12,9 +14,12 @@ public static class ServiceCollectionExtension
     {
         //Repositories
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         //Services
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<ICategoryService, CategoryService>();
         
         return services;
     }

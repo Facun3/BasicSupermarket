@@ -1,4 +1,7 @@
 using System.Linq.Expressions;
+using BasicSupermarket.Domain;
+using BasicSupermarket.Domain.Communication;
+using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Domain.Dto;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Domain.Mapping;
@@ -10,101 +13,108 @@ namespace BasicSupermarket.Services;
 public class ProductService: IProductService
 {
     private readonly IProductRepository _productRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ProductService> _logger;
     
-    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger)
+    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger, IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
     
-    public async Task<IEnumerable<ProductResponseDto>> GetProducts(string? name , int? page = 1, int? pageSize = 10)
+    public async Task<IEnumerable<ProductResponseDto>> ListAsync(ProductQuery query)
     {
-        try
-        {
-            page = page ?? 1;
-            pageSize = pageSize ?? 10;
+        Expression<Func<Product, bool>> predicate = product => 
+            string.IsNullOrEmpty(query.SearchFor) || product.Name.Contains(query.SearchFor) || product.Description.Contains(query.SearchFor);
             
-            Expression<Func<Product, bool>> predicate = product => 
-                string.IsNullOrEmpty(name) || product.Name.Contains(name) || product.Description.Contains(name);
-
-            IQueryable<Product> queriedProducts = await _productRepository.SearchAsync(predicate);
+        IEnumerable<Product> queriedProducts = await _productRepository.SearchAsync(predicate);
             
-            // Apply pagination
-            List<Product> paginatedProducts = queriedProducts
-                .Skip((page.Value - 1) * pageSize.Value)
-                .Take(pageSize.Value).ToList();
-            var response = ProductMapper.FromProductToProductResponseDto(paginatedProducts);
-            return response;
-
-        }
-
-        catch (Exception ex)
-        {
-            String err = ex.Message;
-            _logger.LogError(ex, ex.Message);
-            throw new ApplicationException(err);
-        }
+        // Apply pagination
+        List<Product> paginatedProducts = queriedProducts
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize).ToList();
+        var response = ProductMapper.FromProductToProductResponseDto(paginatedProducts);
+        return response;
     }
 
-    public async Task<ProductResponseDto?> GetProduct(int id)
+    public async Task<Response<ProductResponseDto>> GetByIdAsync(int id)
     {
         try
         {
             var product = await _productRepository.GetByIdAsync(id);
-            return product == null ? null : ProductMapper.FromProductToProductResponseDto(product);
+            if (product == null)
+            {
+                return new Response<ProductResponseDto>("Product not found");
+            }
+            return new Response<ProductResponseDto>(ProductMapper.FromProductToProductResponseDto(product));
         }
         catch (Exception ex)
         {
             String err = ex.Message;
             _logger.LogError(ex, ex.Message);
-            throw new ApplicationException(err);
+            return new Response<ProductResponseDto>($"Error getting product: {err}");
         }
         
     }
 
-    public async Task<ProductResponseDto> PostProduct(CreateProductRequestDto product)
+    public async Task<Response<ProductResponseDto>> CreateAsync(CreateProductRequestDto product)
     {
         try
         {
-            var newProduct = await _productRepository.AddAsync(ProductMapper.FromCreateProductRequestDtoToProduct(product));
-            return ProductMapper.FromProductToProductResponseDto(newProduct);
+            var newProduct = ProductMapper.FromCreateProductRequestDtoToProduct(product);
+            await _productRepository.AddAsync(newProduct);
+            await _unitOfWork.CompleteAsync();
+            return new Response<ProductResponseDto>(ProductMapper.FromProductToProductResponseDto(newProduct));
         }
         catch (Exception ex)
         {
             String err = ex.Message;
             _logger.LogError(ex, ex.Message);
-            throw new ApplicationException(err);
+            return new Response<ProductResponseDto>($"Error creating product: {err}");
         }
     }
 
-    public async Task<ProductResponseDto> PutProduct(int id, UpdateProductRequestDto productRequestDto)
+    public async Task<Response<ProductResponseDto>> UpdateAsync(int id, UpdateProductRequestDto productRequestDto)
     {
+        var productExist = await _productRepository.GetByIdAsync(id);
+        if (productExist == null)
+        {
+            return new Response<ProductResponseDto>("Product not found");
+        }
         try
         {
-            //TODO: Add some validations here
-            Product updateProduct = await _productRepository.UpdateAsync(ProductMapper.FromUpdateProductRequestDtoToProduct(id, productRequestDto));
-            return ProductMapper.FromProductToProductResponseDto(updateProduct);
+            var updateProduct = ProductMapper.FromUpdateProductRequestDtoToProduct(id, productRequestDto);
+            _productRepository.Update(updateProduct);
+            await _unitOfWork.CompleteAsync();
+            return new Response<ProductResponseDto>(ProductMapper.FromProductToProductResponseDto(updateProduct));
         }
         catch (Exception ex)
         {
             String err = ex.Message;
-            _logger.LogError(ex, ex.Message);
-            throw new ApplicationException(err);
+            _logger.LogError(ex, $"Error updating product: {err}");
+            return new Response<ProductResponseDto>($"Error updating product: {err}");
         }
     }
 
-    public Task<int> DeleteProduct(int id)
+    public async Task<Response<ProductResponseDto>> DeleteAsync(int id)
     {
+        var productExist = await _productRepository.GetByIdAsync(id);
+        if (productExist == null)
+        {
+            return new Response<ProductResponseDto>("Product not found");
+        }
         try
         {
-            return _productRepository.DeleteAsync(id);
+            _productRepository.Delete(productExist);
+            await _unitOfWork.CompleteAsync();
+            return new Response<ProductResponseDto>(ProductMapper.FromProductToProductResponseDto(productExist));
         }
         catch (Exception ex)
         {
             String err = ex.Message;
-            _logger.LogError(ex, ex.Message);
-            throw new ApplicationException(err);
+            _logger.LogError(ex, "Error deleting product.");
+            return new Response<ProductResponseDto>($"Error deleting product: {err}");
         }
     }
 }
