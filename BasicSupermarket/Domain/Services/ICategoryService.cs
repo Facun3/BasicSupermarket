@@ -1,12 +1,12 @@
-using BasicSupermarket.Domain.Dto;
+using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Domain.Services.Communication;
 
 namespace BasicSupermarket.Domain.Services;
 
 public interface ICategoryService
 {
-    Task<IEnumerable<CategoryResponseDto>> GetAllAsync();
-    Task<Response<CategoryResponseDto>> GetByIdAsync(int id);
-    Task<Response<CategoryResponseDto>> CreateAsync(string name);
-    Task<Response<CategoryResponseDto>> UpdateAsync(int id, string newName);
-    Task<Response<CategoryResponseDto>> DeleteAsync(int id);
+    Task<IEnumerable<Category>> ListAsync();
+    Task<Response<Category>> SaveAsync(Category category);
+    Task<Response<Category>> UpdateAsync(int id, Category category);
+    Task<Response<Category>> DeleteAsync(int id);
 }

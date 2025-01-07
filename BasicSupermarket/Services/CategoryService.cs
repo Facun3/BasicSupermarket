@@ -1,5 +1,7 @@
-using BasicSupermarket.Domain.Communication;
+using BasicSupermarket.Domain;
 using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Domain.Services;
+using BasicSupermarket.Domain.Services.Communication;
 using BasicSupermarket.Repositories;
 
 namespace BasicSupermarket.Services;
@@ -7,11 +9,13 @@ namespace BasicSupermarket.Services;
 public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CategoryService> _logger;
 
-    public CategoryService( ICategoryRepository categoryRepository, ILogger<CategoryService> logger)
+    public CategoryService( ICategoryRepository categoryRepository, IUnitOfWork unitOfWork, ILogger<CategoryService> logger)
     {
         _categoryRepository = categoryRepository;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
     
@@ -45,7 +49,8 @@ public class CategoryService : ICategoryService
 
         try
         {
-            await _categoryRepository.UpdateAsync(existingCategory);
+            _categoryRepository.Update(existingCategory);
+            await _unitOfWork.CompleteAsync();
             return new Response<Category>(existingCategory);
         }
         catch (Exception ex)
@@ -66,7 +71,8 @@ public class CategoryService : ICategoryService
 
         try
         {
-            await _categoryRepository.DeleteAsync(id);
+            _categoryRepository.Delete(existingCategory);
+            await _unitOfWork.CompleteAsync();
             return new Response<Category>(existingCategory);
         }
         catch (Exception ex)

@@ -1,5 +1,6 @@
 using BasicSupermarket.Domain.Communication;
 using BasicSupermarket.Domain.Dto;
+using BasicSupermarket.Domain.Services.Communication;
 
 namespace BasicSupermarket.Domain.Services;
 

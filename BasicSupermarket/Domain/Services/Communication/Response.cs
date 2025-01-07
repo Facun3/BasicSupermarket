@@ -1,4 +1,4 @@
-namespace BasicSupermarket.Domain;
+namespace BasicSupermarket.Domain.Services.Communication;
 
 public class Response<T>
 {
