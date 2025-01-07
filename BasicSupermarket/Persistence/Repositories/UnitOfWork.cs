@@ -1,3 +1,4 @@
+using BasicSupermarket.Persistence.Context;
 using BasicSupermarket.Repositories;
 
 namespace BasicSupermarket.Persistence.Repositories;

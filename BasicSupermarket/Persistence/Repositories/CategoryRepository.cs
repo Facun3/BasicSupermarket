@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Persistence.Context;
 using BasicSupermarket.Repositories;
 using Microsoft.EntityFrameworkCore;
 

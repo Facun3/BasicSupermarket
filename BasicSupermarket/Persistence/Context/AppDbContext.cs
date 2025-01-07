@@ -1,7 +1,7 @@
 using BasicSupermarket.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BasicSupermarket.Persistence;
+namespace BasicSupermarket.Persistence.Context;
 
 public class AppDbContext: DbContext
 {

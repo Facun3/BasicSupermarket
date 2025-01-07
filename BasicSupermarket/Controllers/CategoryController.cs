@@ -22,5 +22,4 @@ public class CategoryController: BaseApiController
         return Ok(await _categoryService.GetAllAsync());
     }
     
-    
 }

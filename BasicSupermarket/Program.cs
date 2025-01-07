@@ -1,6 +1,7 @@
 using BasicSupermarket;
 using BasicSupermarket.Config;
 using BasicSupermarket.Persistence;
+using BasicSupermarket.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
