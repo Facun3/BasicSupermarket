@@ -1,6 +1,6 @@
 namespace BasicSupermarket.Domain.Dto;
 
-public class ErrorResponseDto
+public record ErrorResponseDto
 {
     public bool Success => false;
     private string Message { get; set; }

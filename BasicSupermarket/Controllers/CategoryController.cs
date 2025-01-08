@@ -5,20 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BasicSupermarket.Controllers;
 
-public class CategoryController: BaseApiController
+public class CategoryController(ICategoryService categoryService): BaseApiController
 {
-    private readonly ICategoryService _categoryService;
-
-    public CategoryController(ICategoryService categoryService)
-    {
-        _categoryService = categoryService;
-    }
-
+    
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponseDto>), 200)]
     public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
     {
-        return Ok(await _categoryService.ListAsync());
+        return Ok(await categoryService.ListAsync());
     }
     
 }

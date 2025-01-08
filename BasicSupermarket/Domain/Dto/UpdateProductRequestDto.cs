@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BasicSupermarket.Domain.Dto;
 
-public class UpdateProductRequestDto
+public record UpdateProductRequestDto
 {
     [MinLength(3), MaxLength(50)]
     public string Name { get; set; }

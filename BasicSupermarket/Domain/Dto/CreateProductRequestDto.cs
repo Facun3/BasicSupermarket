@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BasicSupermarket.Domain.Dto;
 
-public class CreateProductRequestDto
+public record CreateProductRequestDto
 {
     [Required(ErrorMessage = "Name is required"), MinLength(3), MaxLength(50)]
     public string Name { get; set; } = null!;

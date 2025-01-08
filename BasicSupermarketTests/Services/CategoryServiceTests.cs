@@ -1,0 +1,143 @@
+using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Repositories;
+using BasicSupermarket.Services;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+
+namespace BasicSupermarketTests.Services;
+
+public class CategoryServiceTests
+{
+    private readonly Mock<ICategoryRepository> _categoryRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly CategoryService _categoryService;
+
+    public CategoryServiceTests()
+    {
+        _categoryRepositoryMock = new Mock<ICategoryRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _categoryService = new CategoryService(
+            _categoryRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            new NullLogger<CategoryService>() // Logger "vacío" para simplificar pruebas
+        );
+    }
+
+    [Fact]
+    public async Task ListAsync_ShouldReturnAllCategories()
+    {
+        // Arrange
+        var categories = new List<Category>
+        {
+            new Category { Id = 1, Name = "Category 1" },
+            new Category { Id = 2, Name = "Category 2" }
+        };
+        _categoryRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(categories);
+
+        // Act
+        var result = await _categoryService.ListAsync();
+
+        // Assert
+        Assert.Equal(2, result.Count());
+        Assert.Contains(result, c => c.Name == "Category 1");
+        Assert.Contains(result, c => c.Name == "Category 2");
+    }
+
+    [Fact]
+    public async Task SaveAsync_ShouldSaveCategory_WhenNoException()
+    {
+        // Arrange
+        var newCategory = new Category { Id = 1, Name = "New Category" };
+        _categoryRepositoryMock.Setup(repo => repo.AddAsync(newCategory)).Returns(Task.CompletedTask);
+
+        // Act
+        var response = await _categoryService.SaveAsync(newCategory);
+
+        // Assert
+        Assert.True(response.Success);
+        Assert.Equal(newCategory, response.Resource);
+        _categoryRepositoryMock.Verify(repo => repo.AddAsync(newCategory), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveAsync_ShouldReturnError_WhenExceptionOccurs()
+    {
+        // Arrange
+        var newCategory = new Category { Id = 1, Name = "New Category" };
+        _categoryRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Category>()))
+                               .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var response = await _categoryService.SaveAsync(newCategory);
+
+        // Assert
+        Assert.False(response.Success);
+        Assert.Contains("An error occurred", response.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldUpdateCategory_WhenExists()
+    {
+        // Arrange
+        var existingCategory = new Category { Id = 1, Name = "Old Category" };
+        var updatedCategory = new Category { Name = "Updated Category" };
+
+        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(existingCategory);
+        _unitOfWorkMock.Setup(uow => uow.CompleteAsync()).Returns(Task.CompletedTask);
+
+        // Act
+        var response = await _categoryService.UpdateAsync(1, updatedCategory);
+
+        // Assert
+        Assert.True(response.Success);
+        Assert.Equal("Updated Category", existingCategory.Name);
+        _categoryRepositoryMock.Verify(repo => repo.Update(existingCategory), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldReturnError_WhenCategoryDoesNotExist()
+    {
+        // Arrange
+        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync((Category)null);
+
+        // Act
+        var response = await _categoryService.UpdateAsync(1, new Category { Name = "Updated Category" });
+
+        // Assert
+        Assert.False(response.Success);
+        Assert.Contains("does not exist", response.Message);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldDeleteCategory_WhenExists()
+    {
+        // Arrange
+        var existingCategory = new Category { Id = 1, Name = "Category to Delete" };
+        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(existingCategory);
+        _unitOfWorkMock.Setup(uow => uow.CompleteAsync()).Returns(Task.CompletedTask);
+
+        // Act
+        var response = await _categoryService.DeleteAsync(1);
+
+        // Assert
+        Assert.True(response.Success);
+        Assert.Equal(existingCategory, response.Resource);
+        _categoryRepositoryMock.Verify(repo => repo.Delete(existingCategory), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnError_WhenCategoryDoesNotExist()
+    {
+        // Arrange
+        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync((Category)null);
+
+        // Act
+        var response = await _categoryService.DeleteAsync(1);
+
+        // Assert
+        Assert.False(response.Success);
+        Assert.Contains("does not exist", response.Message);
+    }
+}

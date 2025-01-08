@@ -1,5 +1,5 @@
 namespace BasicSupermarket.Domain.Dto;
-public class ProductResponseDto
+public record ProductResponseDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = String.Empty;

@@ -11,25 +11,15 @@ using BasicSupermarket.Repositories;
 
 namespace BasicSupermarket.Services;
 
-public class ProductService: IProductService
+public class ProductService(IProductRepository productRepository, IUnitOfWork unitOfWork, ILogger<ProductService> logger): IProductService
 {
-    private readonly IProductRepository _productRepository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<ProductService> _logger;
-    
-    public ProductService(IProductRepository productRepository, ILogger<ProductService> logger, IUnitOfWork unitOfWork)
-    {
-        _productRepository = productRepository;
-        _unitOfWork = unitOfWork;
-        _logger = logger;
-    }
     
     public async Task<IEnumerable<ProductResponseDto>> ListAsync(ProductQuery query)
     {
         Expression<Func<Product, bool>> predicate = product => 
             string.IsNullOrEmpty(query.SearchFor) || product.Name.Contains(query.SearchFor) || product.Description.Contains(query.SearchFor);
             
-        IEnumerable<Product> queriedProducts = await _productRepository.SearchAsync(predicate);
+        IEnumerable<Product> queriedProducts = await productRepository.SearchAsync(predicate);
             
         // Apply pagination
         List<Product> paginatedProducts = queriedProducts
@@ -43,7 +33,7 @@ public class ProductService: IProductService
     {
         try
         {
-            var product = await _productRepository.GetByIdAsync(id);
+            var product = await productRepository.GetByIdAsync(id);
             if (product == null)
             {
                 return new Response<ProductResponseDto>("Product not found");
@@ -53,7 +43,7 @@ public class ProductService: IProductService
         catch (Exception ex)
         {
             String err = ex.Message;
-            _logger.LogError(ex, ex.Message);
+            logger.LogError(ex, ex.Message);
             return new Response<ProductResponseDto>($"Error getting product: {err}");
         }
         
@@ -64,21 +54,21 @@ public class ProductService: IProductService
         try
         {
             var newProduct = ProductMapper.FromCreateProductRequestDtoToProduct(product);
-            await _productRepository.AddAsync(newProduct);
-            await _unitOfWork.CompleteAsync();
+            await productRepository.AddAsync(newProduct);
+            await unitOfWork.CompleteAsync();
             return new Response<ProductResponseDto>(ProductMapper.FromProductToProductResponseDto(newProduct));
         }
         catch (Exception ex)
         {
             String err = ex.Message;
-            _logger.LogError(ex, ex.Message);
+            logger.LogError(ex, ex.Message);
             return new Response<ProductResponseDto>($"Error creating product: {err}");
         }
     }
 
     public async Task<Response<ProductResponseDto>> UpdateAsync(int id, UpdateProductRequestDto productRequestDto)
     {
-        var productExist = await _productRepository.GetByIdAsync(id);
+        var productExist = await productRepository.GetByIdAsync(id);
         if (productExist == null)
         {
             return new Response<ProductResponseDto>("Product not found");
@@ -86,35 +76,35 @@ public class ProductService: IProductService
         try
         {
             var updateProduct = ProductMapper.FromUpdateProductRequestDtoToProduct(id, productRequestDto);
-            _productRepository.Update(updateProduct);
-            await _unitOfWork.CompleteAsync();
+            productRepository.Update(updateProduct);
+            await unitOfWork.CompleteAsync();
             return new Response<ProductResponseDto>(ProductMapper.FromProductToProductResponseDto(updateProduct));
         }
         catch (Exception ex)
         {
             String err = ex.Message;
-            _logger.LogError(ex, $"Error updating product: {err}");
+            logger.LogError(ex, $"Error updating product: {err}");
             return new Response<ProductResponseDto>($"Error updating product: {err}");
         }
     }
 
     public async Task<Response<ProductResponseDto>> DeleteAsync(int id)
     {
-        var productExist = await _productRepository.GetByIdAsync(id);
+        var productExist = await productRepository.GetByIdAsync(id);
         if (productExist == null)
         {
             return new Response<ProductResponseDto>("Product not found");
         }
         try
         {
-            _productRepository.Delete(productExist);
-            await _unitOfWork.CompleteAsync();
+            productRepository.Delete(productExist);
+            await unitOfWork.CompleteAsync();
             return new Response<ProductResponseDto>(ProductMapper.FromProductToProductResponseDto(productExist));
         }
         catch (Exception ex)
         {
             String err = ex.Message;
-            _logger.LogError(ex, "Error deleting product.");
+            logger.LogError(ex, "Error deleting product.");
             return new Response<ProductResponseDto>($"Error deleting product: {err}");
         }
     }

@@ -6,41 +6,31 @@ using BasicSupermarket.Repositories;
 
 namespace BasicSupermarket.Services;
 
-public class CategoryService : ICategoryService
+public class CategoryService(ICategoryRepository categoryRepository, IUnitOfWork unitOfWork, ILogger<CategoryService> logger) : ICategoryService
 {
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<CategoryService> _logger;
-
-    public CategoryService( ICategoryRepository categoryRepository, IUnitOfWork unitOfWork, ILogger<CategoryService> logger)
-    {
-        _categoryRepository = categoryRepository;
-        _unitOfWork = unitOfWork;
-        _logger = logger;
-    }
     
     public async Task<IEnumerable<Category>> ListAsync()
     {
-        return await _categoryRepository.GetAllAsync();
+        return await categoryRepository.GetAllAsync();
     }
 
     public async Task<Response<Category>> SaveAsync(Category category)
     {
         try
         {
-            await _categoryRepository.AddAsync(category);
+            await categoryRepository.AddAsync(category);
             return new Response<Category>(category);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred when saving the category");
+            logger.LogError(ex, "An error occurred when saving the category");
             return new Response<Category>($"An error occurred when saving the category {ex.Message}");
         }
     }
 
     public async Task<Response<Category>> UpdateAsync(int id, Category category)
     {
-        var existingCategory = await _categoryRepository.GetByIdAsync(id);
+        var existingCategory = await categoryRepository.GetByIdAsync(id);
         if (existingCategory == null)
         {
             return new Response<Category>($"Category with id {id} does not exist");
@@ -49,13 +39,13 @@ public class CategoryService : ICategoryService
 
         try
         {
-            _categoryRepository.Update(existingCategory);
-            await _unitOfWork.CompleteAsync();
+            categoryRepository.Update(existingCategory);
+            await unitOfWork.CompleteAsync();
             return new Response<Category>(existingCategory);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred when updating the category");
+            logger.LogError(ex, "An error occurred when updating the category");
             return new Response<Category>($"An error occurred when updating the category {ex.Message}");
         }
         
@@ -63,7 +53,7 @@ public class CategoryService : ICategoryService
 
     public async Task<Response<Category>> DeleteAsync(int id)
     {
-        var existingCategory = await _categoryRepository.GetByIdAsync(id);
+        var existingCategory = await categoryRepository.GetByIdAsync(id);
         if (existingCategory == null)
         {
             return new Response<Category>($"Category with id {id} does not exist");
@@ -71,13 +61,13 @@ public class CategoryService : ICategoryService
 
         try
         {
-            _categoryRepository.Delete(existingCategory);
-            await _unitOfWork.CompleteAsync();
+            categoryRepository.Delete(existingCategory);
+            await unitOfWork.CompleteAsync();
             return new Response<Category>(existingCategory);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred when deleting the category");
+            logger.LogError(ex, "An error occurred when deleting the category");
             return new Response<Category>($"An error occurred when deleting the category {ex.Message}");
         }
     }
