@@ -1,4 +1,6 @@
+
 using System.Reflection;
+using BasicSupermarket.Domain.Repositories;
 using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Persistence.Repositories;
 using BasicSupermarket.Repositories;
@@ -37,5 +39,5 @@ public static class ServiceCollectionExtension
 
         return services;
     }
-
+    
 }

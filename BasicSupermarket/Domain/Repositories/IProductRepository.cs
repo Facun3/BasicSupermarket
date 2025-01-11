@@ -1,5 +1,5 @@
 using BasicSupermarket.Domain.Entities;
-namespace BasicSupermarket.Repositories;
+namespace BasicSupermarket.Domain.Repositories;
 
 public interface IProductRepository : IRepository<Product>
 {

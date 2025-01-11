@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Domain.Repositories;
 using BasicSupermarket.Persistence.Context;
 using BasicSupermarket.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -14,25 +15,15 @@ public class CategoryRepository : ICategoryRepository
     {
         _context = context;
     }
+
+    public IQueryable<Category> GetQuery()
+    {
+        return _context.Categories.AsQueryable();
+    }
     
-    public async Task<IEnumerable<Category>> SearchAsync(Expression<Func<Category, bool>> predicate)
+    public async Task AddAsync(Category category)
     {
-        return await _context.Categories.AsQueryable().Where(predicate).AsNoTracking().ToListAsync();
-    }
-
-    public async Task AddAsync(Category entity)
-    {
-        await _context.Categories.AddAsync(entity);
-    }
-
-    public async Task<Category?> GetByIdAsync(int id)
-    {
-        return await _context.Categories.FirstOrDefaultAsync(x => x.Id == id);
-    }
-
-    public async Task<IEnumerable<Category>> GetAllAsync()
-    {
-        return await _context.Categories.AsNoTracking().ToListAsync();
+        await _context.Categories.AddAsync(category);
     }
 
     public void Update(Category category)

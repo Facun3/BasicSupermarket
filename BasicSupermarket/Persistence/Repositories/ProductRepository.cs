@@ -1,8 +1,6 @@
-using System.Linq.Expressions;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Persistence.Context;
-using BasicSupermarket.Repositories;
-using Microsoft.EntityFrameworkCore;
+using BasicSupermarket.Domain.Repositories;
 
 namespace BasicSupermarket.Persistence.Repositories;
 
@@ -14,22 +12,12 @@ public class ProductRepository: IProductRepository
     {
         _context = context;
     }
+
+    public IQueryable<Product> GetQuery()
+    {
+        return _context.Products.AsQueryable();
+    }
     
-    public async Task<Product?> GetByIdAsync(int id)
-    {
-        return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
-    }
-
-    public async Task<IEnumerable<Product>> GetAllAsync()
-    {
-        return await _context.Products.Include(p => p.Category).ToListAsync();
-    }
-
-    public async Task<IEnumerable<Product>> SearchAsync(Expression<Func<Product, bool>> predicate)
-    {
-        return await _context.Products.Include(p => p.Category).Where(predicate).ToListAsync();
-    }
-
     public async Task AddAsync(Product product)
     {
         await _context.Products.AddAsync(product);

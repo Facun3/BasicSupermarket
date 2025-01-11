@@ -1,8 +1,10 @@
 using BasicSupermarket.Domain;
 using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Domain.Repositories;
 using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Domain.Services.Communication;
 using BasicSupermarket.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace BasicSupermarket.Services;
 
@@ -11,15 +13,22 @@ public class CategoryService(ICategoryRepository categoryRepository, IUnitOfWork
     
     public async Task<IEnumerable<Category>> ListAsync()
     {
-        return await categoryRepository.GetAllAsync();
+        return await categoryRepository.GetQuery().AsNoTracking().ToListAsync();
     }
 
-    public async Task<Response<Category>> SaveAsync(Category category)
+    public async Task<Response<Category>> SaveAsync(Category newCategory)
     {
         try
         {
-            await categoryRepository.AddAsync(category);
-            return new Response<Category>(category);
+            IQueryable<Category> query = categoryRepository.GetQuery();
+            var existingCategory = await query.FirstOrDefaultAsync(cat => cat.Name == newCategory.Name);
+            if (existingCategory != null)
+            {
+                return new Response<Category>("Category Name Already Exists");
+            }
+            await categoryRepository.AddAsync(newCategory);
+            await unitOfWork.CompleteAsync();
+            return new Response<Category>(newCategory);
         }
         catch (Exception ex)
         {
@@ -30,7 +39,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IUnitOfWork
 
     public async Task<Response<Category>> UpdateAsync(int id, Category category)
     {
-        var existingCategory = await categoryRepository.GetByIdAsync(id);
+        var existingCategory = await categoryRepository.GetQuery().FirstOrDefaultAsync(x => x.Id == id);
         if (existingCategory == null)
         {
             return new Response<Category>($"Category with id {id} does not exist");
@@ -53,7 +62,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IUnitOfWork
 
     public async Task<Response<Category>> DeleteAsync(int id)
     {
-        var existingCategory = await categoryRepository.GetByIdAsync(id);
+        var existingCategory = await categoryRepository.GetQuery().FirstOrDefaultAsync(x => x.Id == id);
         if (existingCategory == null)
         {
             return new Response<Category>($"Category with id {id} does not exist");

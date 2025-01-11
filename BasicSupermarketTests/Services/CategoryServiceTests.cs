@@ -1,7 +1,9 @@
 using BasicSupermarket.Domain.Entities;
+using BasicSupermarket.Domain.Repositories;
 using BasicSupermarket.Repositories;
 using BasicSupermarket.Services;
 using Microsoft.Extensions.Logging.Abstractions;
+using MockQueryable;
 using Moq;
 
 namespace BasicSupermarketTests.Services;
@@ -32,7 +34,7 @@ public class CategoryServiceTests
             new Category { Id = 1, Name = "Category 1" },
             new Category { Id = 2, Name = "Category 2" }
         };
-        _categoryRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(categories);
+        _categoryRepositoryMock.Setup(repo => repo.GetQuery()).Returns(categories.AsQueryable().BuildMock());
 
         // Act
         var result = await _categoryService.ListAsync();
@@ -48,6 +50,7 @@ public class CategoryServiceTests
     {
         // Arrange
         var newCategory = new Category { Id = 1, Name = "New Category" };
+        _categoryRepositoryMock.Setup(repo => repo.GetQuery()).Returns(new List<Category>().AsQueryable().BuildMock());
         _categoryRepositoryMock.Setup(repo => repo.AddAsync(newCategory)).Returns(Task.CompletedTask);
 
         // Act
@@ -80,9 +83,10 @@ public class CategoryServiceTests
     {
         // Arrange
         var existingCategory = new Category { Id = 1, Name = "Old Category" };
+        var categories = new List<Category> { existingCategory };
         var updatedCategory = new Category { Name = "Updated Category" };
 
-        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(existingCategory);
+        _categoryRepositoryMock.Setup(repo => repo.GetQuery()).Returns(categories.AsQueryable().BuildMock());
         _unitOfWorkMock.Setup(uow => uow.CompleteAsync()).Returns(Task.CompletedTask);
 
         // Act
@@ -99,7 +103,7 @@ public class CategoryServiceTests
     public async Task UpdateAsync_ShouldReturnError_WhenCategoryDoesNotExist()
     {
         // Arrange
-        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync((Category)null);
+        _categoryRepositoryMock.Setup(repo => repo.GetQuery()).Returns(new List<Category>().AsQueryable().BuildMock());
 
         // Act
         var response = await _categoryService.UpdateAsync(1, new Category { Name = "Updated Category" });
@@ -113,8 +117,10 @@ public class CategoryServiceTests
     public async Task DeleteAsync_ShouldDeleteCategory_WhenExists()
     {
         // Arrange
-        var existingCategory = new Category { Id = 1, Name = "Category to Delete" };
-        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(existingCategory);
+        var existingCategory = new Category { Id = 1, Name = "Old Category" };
+        var categories = new List<Category> { existingCategory };
+        IQueryable<Category> query = categories.AsQueryable();
+        _categoryRepositoryMock.Setup(repo => repo.GetQuery()).Returns(query.BuildMock());
         _unitOfWorkMock.Setup(uow => uow.CompleteAsync()).Returns(Task.CompletedTask);
 
         // Act
@@ -130,8 +136,9 @@ public class CategoryServiceTests
     [Fact]
     public async Task DeleteAsync_ShouldReturnError_WhenCategoryDoesNotExist()
     {
+        var categories = new List<Category>().AsQueryable().BuildMock();
         // Arrange
-        _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync((Category)null);
+        _categoryRepositoryMock.Setup(repo => repo.GetQuery()).Returns(categories);
 
         // Act
         var response = await _categoryService.DeleteAsync(1);

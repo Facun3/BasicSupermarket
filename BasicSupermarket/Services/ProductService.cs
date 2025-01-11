@@ -1,12 +1,13 @@
 using System.Linq.Expressions;
-using BasicSupermarket.Domain;
 using BasicSupermarket.Domain.Communication;
 using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Domain.Dto;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Domain.Mapping;
 using BasicSupermarket.Domain.Services.Communication;
+using BasicSupermarket.Domain.Repositories;
 using BasicSupermarket.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace BasicSupermarket.Services;
@@ -16,16 +17,40 @@ public class ProductService(IProductRepository productRepository, IUnitOfWork un
     
     public async Task<IEnumerable<ProductResponseDto>> ListAsync(ProductQuery query)
     {
-        Expression<Func<Product, bool>> predicate = product => 
-            string.IsNullOrEmpty(query.SearchFor) || product.Name.Contains(query.SearchFor) || product.Description.Contains(query.SearchFor);
-            
-        IEnumerable<Product> queriedProducts = await productRepository.SearchAsync(predicate);
-            
-        // Apply pagination
-        List<Product> paginatedProducts = queriedProducts
+        IQueryable<Product> queryable = productRepository.GetQuery().Include(product => product.Category);;
+        
+        if (!string.IsNullOrEmpty(query.SearchFor))
+        {
+            queryable = queryable.Where(product => product.Name.Contains(query.SearchFor) || product.Description.Contains(query.SearchFor) || product.Category.Name.Contains(query.SearchFor));
+        }
+        
+        if (query.CategoryId.HasValue)
+        {
+            queryable = queryable.Where(product => product.CategoryId == query.CategoryId.Value);
+        }
+        
+        if (query.MinPrice.HasValue)
+        {
+            queryable = queryable.Where(product => product.Price >= query.MinPrice.Value);
+        }
+
+        if (query.MaxPrice.HasValue)
+        {
+            queryable = queryable.Where(product => product.Price <= query.MaxPrice.Value);
+        }
+        
+        // Obtener los productos filtrados de forma asíncrona (sin ejecutarlo aún)
+        var queriedProducts = await queryable.ToListAsync();
+
+        // Aplicar la paginación (solo después de obtener la lista completa de productos)
+        var paginatedProducts = queriedProducts
             .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize).ToList();
+            .Take(query.PageSize)
+            .ToList();
+
+        // Mapear los productos a DTOs para la respuesta
         var response = ProductMapper.FromProductToProductResponseDto(paginatedProducts);
+
         return response;
     }
 
@@ -33,7 +58,7 @@ public class ProductService(IProductRepository productRepository, IUnitOfWork un
     {
         try
         {
-            var product = await productRepository.GetByIdAsync(id);
+            var product = await productRepository.GetQuery().FirstOrDefaultAsync(p => p.Id == id);
             if (product == null)
             {
                 return new Response<ProductResponseDto>("Product not found");
@@ -53,6 +78,12 @@ public class ProductService(IProductRepository productRepository, IUnitOfWork un
     {
         try
         {
+            IQueryable<Product> query = productRepository.GetQuery();
+            var existingCategory = await query.FirstOrDefaultAsync(prod => prod.Name == product.Name);
+            if (existingCategory != null)
+            {
+                return new Response<ProductResponseDto>("Product Name Already Exists");
+            }
             var newProduct = ProductMapper.FromCreateProductRequestDtoToProduct(product);
             await productRepository.AddAsync(newProduct);
             await unitOfWork.CompleteAsync();
@@ -68,7 +99,7 @@ public class ProductService(IProductRepository productRepository, IUnitOfWork un
 
     public async Task<Response<ProductResponseDto>> UpdateAsync(int id, UpdateProductRequestDto productRequestDto)
     {
-        var productExist = await productRepository.GetByIdAsync(id);
+        var productExist = await productRepository.GetQuery().FirstOrDefaultAsync(p => p.Id == id);
         if (productExist == null)
         {
             return new Response<ProductResponseDto>("Product not found");
@@ -90,7 +121,7 @@ public class ProductService(IProductRepository productRepository, IUnitOfWork un
 
     public async Task<Response<ProductResponseDto>> DeleteAsync(int id)
     {
-        var productExist = await productRepository.GetByIdAsync(id);
+        var productExist = await productRepository.GetQuery().FirstOrDefaultAsync(p => p.Id == id);
         if (productExist == null)
         {
             return new Response<ProductResponseDto>("Product not found");

@@ -3,8 +3,12 @@ using BasicSupermarket.Config;
 using BasicSupermarket.Persistence;
 using BasicSupermarket.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add logging service
+builder.Services.AddLogging();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -12,7 +16,40 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
-//Extension method for services configuration
+// Cors config
+// Load CORS settings from appsettings.json
+var corsConfig = builder.Configuration.GetSection("Cors");
+
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CustomCorsPolicy", policy =>
+    {
+        var allowedOrigins = corsConfig.GetValue<string>("AllowedOrigins");
+        var allowAnyOrigin = corsConfig.GetValue<bool>("AllowAnyOrigin");
+        var allowAnyHeader = corsConfig.GetValue<bool>("AllowAnyHeader");
+        var allowAnyMethod = corsConfig.GetValue<bool>("AllowAnyMethod");
+
+        if (allowAnyHeader)
+        {
+            policy.AllowAnyHeader();
+        }
+        if (allowAnyMethod)
+        {
+            policy.AllowAnyMethod();
+        }
+        if (allowAnyOrigin)
+        {
+            policy.AllowAnyOrigin();
+        }
+        else if (allowedOrigins != null && allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+    });
+});
+
+// Extension method for services configuration
 builder.Services.ConfigureServices();
 
 builder.Services.AddControllers();
@@ -35,6 +72,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseCors("CustomCorsPolicy");
 
 app.MapControllers();
 
