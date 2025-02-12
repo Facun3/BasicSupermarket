@@ -15,7 +15,7 @@ namespace BasicSupermarket.Services;
 public class ProductService(IProductRepository productRepository, IUnitOfWork unitOfWork, ILogger<ProductService> logger): IProductService
 {
     
-    public async Task<IEnumerable<ProductResponseDto>> ListAsync(ProductQuery query)
+    public async Task<QueryResponseDto<ProductResponseDto>> ListAsync(ProductQuery query)
     {
         IQueryable<Product> queryable = productRepository.GetQuery().Include(product => product.Category);;
         
@@ -47,10 +47,18 @@ public class ProductService(IProductRepository productRepository, IUnitOfWork un
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToList();
+        
+        int totalProducts = queryable.Count();
 
         // Mapear los productos a DTOs para la respuesta
-        var response = ProductMapper.FromProductToProductResponseDto(paginatedProducts);
-
+        var response = new QueryResponseDto<ProductResponseDto>
+        {
+            Page = query.Page,
+            PageSize = query.PageSize,
+            Total = totalProducts,
+            Result = ProductMapper.FromProductToProductResponseDto(paginatedProducts)
+        };
+        
         return response;
     }
 

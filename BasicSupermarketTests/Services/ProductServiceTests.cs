@@ -77,10 +77,10 @@ public class ProductServiceTests
         var result = await _productService.ListAsync(query);
 
         // Assert
-        Assert.NotEmpty(result); // Verify that there are products
-        Assert.Equal(2, result.Count()); // Both Apple and Banana should be returned
-        Assert.Contains(result, p => p.Name == "Apple");
-        Assert.Contains(result, p => p.Name == "Banana");
+        Assert.NotEmpty(result.Result); // Verify that there are products
+        Assert.Equal(2, result.Total); // Both Apple and Banana should be returned
+        Assert.Contains(result.Result, p => p.Name == "Apple");
+        Assert.Contains(result.Result, p => p.Name == "Banana");
     }
 
     [Fact]

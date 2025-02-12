@@ -7,10 +7,10 @@ public class Product: AuditableEntity
 {
     public int Id { get; set; }
 
-    [Required, MinLength(3), MaxLength(30)]
+    [Required, MinLength(3), MaxLength(100)]
     public string Name { get; set; } = string.Empty;
     
-    [MinLength(10), MaxLength(100)]
+    [MinLength(10), MaxLength(500)]
     public string Description { get; set; } = string.Empty;
 
     [Required]

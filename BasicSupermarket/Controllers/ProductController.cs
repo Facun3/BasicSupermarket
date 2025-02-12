@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BasicSupermarket.Controllers;
 
-public class ProductsController(IProductService productService): BaseApiController
+public class ProductController(IProductService productService): BaseApiController
 {
     
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<ProductResponseDto>), 200)]
+    [ProducesResponseType(typeof(QueryResponseDto<ProductResponseDto>), 200)]
     [ProducesResponseType(500)] // Added response type for internal server error
-    public async Task<ActionResult<IEnumerable<ProductResponseDto>>> ListAsync(
+    public async Task<ActionResult<QueryResponseDto<ProductResponseDto>>> ListAsync(
         [FromQuery] string name = "",
         [FromQuery] int? category = null, // Nullable category
         [FromQuery] decimal? minPrice = null, // Optional min price
@@ -38,12 +38,6 @@ public class ProductsController(IProductService productService): BaseApiControll
                 Page = page,
                 PageSize = pageSize
             });
-
-            // If no results found, return a 404
-            if (!results.Any())
-            {
-                return NotFound("No products found.");
-            }
 
             return Ok(results); // Return 200 with the list of products
         }

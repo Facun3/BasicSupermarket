@@ -33,15 +33,25 @@ namespace BasicSupermarket.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
                     b.Property<DateTime?>("LastModifyDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
 
                     b.ToTable("Categories");
                 });
@@ -62,8 +72,8 @@ namespace BasicSupermarket.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
@@ -74,8 +84,8 @@ namespace BasicSupermarket.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -88,6 +98,15 @@ namespace BasicSupermarket.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("BasicSupermarket.Domain.Entities.Category", b =>
+                {
+                    b.HasOne("BasicSupermarket.Domain.Entities.Category", "Parent")
+                        .WithMany("Subcategories")
+                        .HasForeignKey("ParentId");
+
+                    b.Navigation("Parent");
                 });
 
             modelBuilder.Entity("BasicSupermarket.Domain.Entities.Product", b =>
@@ -104,6 +123,8 @@ namespace BasicSupermarket.Migrations
             modelBuilder.Entity("BasicSupermarket.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+
+                    b.Navigation("Subcategories");
                 });
 #pragma warning restore 612, 618
         }
