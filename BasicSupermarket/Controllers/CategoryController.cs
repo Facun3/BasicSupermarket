@@ -1,13 +1,13 @@
 using BasicSupermarket.Domain.Dto;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BasicSupermarket.Controllers;
 
 public class CategoryController(ICategoryService categoryService): BaseApiController
 {
-    
     [HttpGet("all")]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponseDto>), 200)]
     public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
@@ -15,6 +15,7 @@ public class CategoryController(ICategoryService categoryService): BaseApiContro
         return Ok(await categoryService.ListAsync());
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("")]
     [ProducesResponseType(typeof(IEnumerable<CategoryResponseDto>), 200)]
     public async Task<ActionResult<IEnumerable<Category>>> PostCategory([FromBody] CreateCategoryRequestDto category)
