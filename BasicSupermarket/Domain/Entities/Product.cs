@@ -5,6 +5,7 @@ namespace BasicSupermarket.Domain.Entities;
 
 public class Product: AuditableEntity
 {
+    [Key]
     public int Id { get; set; }
 
     [Required, MinLength(3), MaxLength(100)]
