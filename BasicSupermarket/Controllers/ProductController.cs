@@ -1,6 +1,7 @@
 using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Domain.Communication;
 using BasicSupermarket.Domain.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BasicSupermarket.Controllers;
@@ -10,12 +11,12 @@ public class ProductController(IProductService productService): BaseApiControlle
     
     [HttpGet]
     [ProducesResponseType(typeof(QueryResponseDto<ProductResponseDto>), 200)]
-    [ProducesResponseType(500)] // Added response type for internal server error
+    [ProducesResponseType(500)]
     public async Task<ActionResult<QueryResponseDto<ProductResponseDto>>> ListAsync(
         [FromQuery] string name = "",
-        [FromQuery] int? category = null, // Nullable category
-        [FromQuery] decimal? minPrice = null, // Optional min price
-        [FromQuery] decimal? maxPrice = null, // Optional max price
+        [FromQuery] int? category = null,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -60,7 +61,7 @@ public class ProductController(IProductService productService): BaseApiControlle
         if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
         return Ok(result);
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(typeof(ProductResponseDto), 201)]
     [ProducesResponseType(typeof(ErrorResponseDto), 400)]
@@ -70,7 +71,7 @@ public class ProductController(IProductService productService): BaseApiControlle
         if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
         return Ok(result);
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ProductResponseDto), 201)]
     [ProducesResponseType(typeof(ErrorResponseDto), 400)]
@@ -80,7 +81,7 @@ public class ProductController(IProductService productService): BaseApiControlle
         if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
         return Ok(result);
     }
-    
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ProductResponseDto), 200)]
     [ProducesResponseType(typeof(ErrorResponseDto), 400)]
