@@ -4,4 +4,5 @@ public abstract class AuditableEntity
 {
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public DateTime? LastModifyDate { get; set; }
+
 }

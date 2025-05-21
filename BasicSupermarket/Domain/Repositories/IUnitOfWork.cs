@@ -1,4 +1,4 @@
-namespace BasicSupermarket.Repositories;
+namespace BasicSupermarket.Domain.Repositories;
 
 public interface IUnitOfWork
 {

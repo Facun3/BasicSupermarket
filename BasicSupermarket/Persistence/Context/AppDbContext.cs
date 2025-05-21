@@ -89,7 +89,6 @@ public class AppDbContext: IdentityDbContext<IdentityUser>
             {
                 entity.CreationDate = DateTime.UtcNow;
             }
-            
             entity.LastModifyDate = DateTime.UtcNow;
         }
     }

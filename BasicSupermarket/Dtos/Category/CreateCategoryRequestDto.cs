@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BasicSupermarket.Domain.Dto;
+namespace BasicSupermarket.Domain.Dto.Category;
 
 public record CreateCategoryRequestDto
 {

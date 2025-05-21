@@ -1,4 +1,4 @@
-namespace BasicSupermarket.Domain.Dto;
+namespace BasicSupermarket.Domain.Dto.Product;
 public record ProductResponseDto
 {
     public int Id { get; set; }

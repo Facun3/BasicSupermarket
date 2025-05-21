@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
         <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
         <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
@@ -24,6 +25,7 @@
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.12" />
         <PackageReference Include="xunit" Version="2.9.2" />
+        <InternalsVisibleTo Include="BasicSupermarketTests"/>
     </ItemGroup>
 
 </Project>

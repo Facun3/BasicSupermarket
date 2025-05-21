@@ -1,6 +1,8 @@
 using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Domain.Communication;
 using BasicSupermarket.Domain.Dto;
+using BasicSupermarket.Domain.Dto.Product;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,14 +42,10 @@ public class ProductController(IProductService productService): BaseApiControlle
                 PageSize = pageSize
             });
 
-            return Ok(results); // Return 200 with the list of products
+            return Ok(results);
         }
         catch (Exception ex)
         {
-            // Log the exception (you can use a logger here)
-            // _logger.LogError(ex, "An error occurred while fetching products.");
-
-            // Return 500 Internal Server Error with a generic message
             return StatusCode(500, "An unexpected error occurred while processing your request.");
         }
     }
@@ -61,7 +59,8 @@ public class ProductController(IProductService productService): BaseApiControlle
         if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
         return Ok(result);
     }
-    [Authorize(Roles = "Admin")]
+    
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(typeof(ProductResponseDto), 201)]
     [ProducesResponseType(typeof(ErrorResponseDto), 400)]
@@ -71,7 +70,8 @@ public class ProductController(IProductService productService): BaseApiControlle
         if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
         return Ok(result);
     }
-    [Authorize(Roles = "Admin")]
+    
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ProductResponseDto), 201)]
     [ProducesResponseType(typeof(ErrorResponseDto), 400)]
@@ -81,7 +81,8 @@ public class ProductController(IProductService productService): BaseApiControlle
         if (!result.Success) return BadRequest(new ErrorResponseDto(result.Message!));
         return Ok(result);
     }
-    [Authorize(Roles = "Admin")]
+    
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ProductResponseDto), 200)]
     [ProducesResponseType(typeof(ErrorResponseDto), 400)]

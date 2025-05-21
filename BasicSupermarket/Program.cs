@@ -1,6 +1,7 @@
 using System.Text;
 using BasicSupermarket;
 using BasicSupermarket.Config;
+using BasicSupermarket.Controllers;
 using BasicSupermarket.Persistence;
 using BasicSupermarket.Persistence.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,8 +10,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using BasicSupermarket.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secret = jwtSettings.GetValue<string>("Secret") ?? throw new InvalidOperationException("JWT Secret is missing.");
@@ -142,6 +147,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("CustomCorsPolicy");
+
+app.UseRouting();
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

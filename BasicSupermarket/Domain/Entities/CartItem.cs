@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using BasicSupermarket.Domain.Exceptions;
 
 namespace BasicSupermarket.Domain.Entities;
 
 public class CartItem: AuditableEntity
 {
+    private CartItem() { }
+    
+    #region Properties
     [Key]
     public int Id { get; set; }
 
@@ -27,4 +31,42 @@ public class CartItem: AuditableEntity
 
     [NotMapped]
     public decimal Subtotal => Quantity * UnitPrice;
+    
+    #endregion
+    
+    #region Factory Methods
+
+    public static CartItem Create(int cartId, int productId, int quantity)
+    {
+        if (cartId <= 0)
+            throw new DomainException("CartId must be greater than zero");
+        if (productId <= 0)
+            throw new DomainException("ProductId must be greater than zero");
+        if (quantity <= 0)
+            throw new DomainException("Quantity must be greater than zero");
+
+        var newCartItem = new CartItem
+        {
+            CartId = cartId,
+            ProductId = productId,
+            Quantity = quantity
+        };
+        return newCartItem;
+    }
+    #endregion
+    
+    #region Actions
+    public void IncreaseQuantity(int amount)
+    {
+        if (amount <= 0)
+            throw new DomainException("Amount must be greater than zero");
+        Quantity += amount;
+    }
+    public void SetQuantity(int newQuantity)
+    {
+        if (newQuantity <= 0)
+            throw new DomainException("Quantity must be greater than zero");
+        Quantity = newQuantity;
+    }
+    #endregion
 }

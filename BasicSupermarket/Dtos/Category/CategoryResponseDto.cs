@@ -1,4 +1,4 @@
-namespace BasicSupermarket.Domain.Dto;
+namespace BasicSupermarket.Domain.Dto.Category;
 
 public record CategoryResponseDto
 {
