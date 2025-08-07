@@ -1,116 +1,110 @@
-# Basic Supermarket API
+# BasicSupermarket API
 
-API REST para un sistema de supermercado básico desarrollado en .NET.
+Una API RESTful para la gestión de un supermercado, desarrollada con .NET 8.0. Este proyecto implementa funcionalidades para gestionar productos, categorías, carritos de compra y órdenes.
 
 ## 🚀 Características
 
-- Autenticación y autorización con JWT
-- Gestión de roles de usuario
-- API RESTful
-- Documentación con Swagger
-- Base de datos MySQL
+- Gestión de productos y categorías
+- Sistema de carrito de compras
+- Procesamiento de órdenes
+- Autenticación de usuarios
+- Manejo de errores centralizado
+- Tests unitarios
+- Documentación de API con Swagger
 - Containerización con Docker
-- Validación de datos
-- Manejo centralizado de errores
 
 ## 🛠️ Tecnologías
 
-- .NET 8
+- .NET 8.0
 - Entity Framework Core
-- MySQL
-- JWT Authentication
-- Swagger/OpenAPI
-- Docker
-- FluentValidation
 - AutoMapper
+- Docker
+- GitHub Actions para CI/CD
 
 ## 📋 Prerrequisitos
 
-- .NET 8 SDK
-- Docker y Docker Compose
-- MySQL (si se ejecuta localmente sin Docker)
+- .NET 8.0 SDK
+- Docker (opcional)
+- Un IDE como Visual Studio o Rider
 
-## 🔧 Configuración
+## 🔧 Instalación y Ejecución
 
-1. Clona el repositorio:
+### Ejecución Local
+
+1. Clonar el repositorio:
 ```bash
-git clone [URL_DEL_REPOSITORIO]
+git clone [URL-del-repositorio]
+```
+
+2. Navegar al directorio del proyecto:
+```bash
 cd BasicSupermarket
 ```
 
-2. Configura las variables de entorno:
-   - Copia `appsettings.Development.json` a `appsettings.json`
-   - Ajusta la cadena de conexión y otras configuraciones según tu entorno
-
-3. Ejecuta con Docker:
-```bash
-docker-compose up -d
-```
-
-4. O ejecuta localmente:
+3. Restaurar dependencias:
 ```bash
 dotnet restore
-dotnet run
 ```
 
-## 📚 Documentación de la API
-
-Una vez que la aplicación esté en ejecución, puedes acceder a la documentación Swagger en:
-```
-https://localhost:5001/swagger
+4. Ejecutar el proyecto:
+```bash
+dotnet run --project BasicSupermarket
 ```
 
-## 🔐 Autenticación
+### Usando Docker
 
-La API utiliza JWT para la autenticación. Para acceder a los endpoints protegidos:
-
-1. Obtén un token mediante el endpoint de login
-2. Incluye el token en el header de las peticiones:
-```
-Authorization: Bearer {tu_token}
+1. Construir la imagen:
+```bash
+docker-compose build
 ```
 
-## 🏗️ Estructura del Proyecto
+2. Ejecutar los contenedores:
+```bash
+docker-compose up
+```
+
+## 🗄️ Estructura del Proyecto
 
 ```
 BasicSupermarket/
-├── Controllers/     # Endpoints de la API
-├── Services/        # Lógica de negocio
-├── Domain/         # Entidades del dominio
-├── Persistence/    # Configuración de BD y repositorios
-├── Dtos/           # Objetos de transferencia de datos
-├── Mapping/        # Configuración de AutoMapper
-└── Config/         # Configuraciones de la aplicación
+├── Controllers/        # Controladores de la API
+├── Domain/            # Entidades y lógica de dominio
+├── Services/          # Servicios de la aplicación
+├── Persistence/       # Acceso a datos y migraciones
+├── Dtos/             # Objetos de transferencia de datos
+├── Config/           # Configuraciones
+└── Mapping/          # Perfiles de AutoMapper
 ```
 
-## 🧪 Testing
+## 🔍 API Endpoints
+
+- `GET /api/products` - Obtener todos los productos
+- `GET /api/products/{id}` - Obtener un producto específico
+- `POST /api/products` - Crear un nuevo producto
+- `PUT /api/products/{id}` - Actualizar un producto
+- `DELETE /api/products/{id}` - Eliminar un producto
+
+Similar estructura para:
+- Categories (`/api/categories`)
+- Cart (`/api/cart`)
+- Orders (`/api/orders`)
+
+## 🧪 Tests
 
 Para ejecutar los tests:
+
 ```bash
 dotnet test
 ```
 
-## 📦 Despliegue
-
-### Con Docker
-```bash
-docker-compose up -d
-```
-
-### Sin Docker
-```bash
-dotnet publish -c Release
-dotnet run --project BasicSupermarket
-```
-
-## 🤝 Contribución
+## 👥 Contribución
 
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+2. Crea tu rama de feature (`git checkout -b feature/AmazingFeature`)
 3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📝 Licencia
+## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para más detalles. 
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para más detalles.
