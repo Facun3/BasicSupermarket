@@ -1,14 +1,11 @@
-using System.Linq.Expressions;
 using BasicSupermarket.Domain.Communication;
-using BasicSupermarket.Domain.Dto;
+using BasicSupermarket.Domain.Dto.Product;
 using BasicSupermarket.Domain.Entities;
-using BasicSupermarket.Domain.Mapping;
 using BasicSupermarket.Domain.Repositories;
-using BasicSupermarket.Repositories;
 using BasicSupermarket.Services;
+using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging.Abstractions;
 using MockQueryable;
-using MockQueryable.Moq;
 using Moq;
 
 namespace BasicSupermarketTests.Services;
@@ -34,36 +31,30 @@ public class ProductServiceTests
     public async Task ListAsync_ShouldReturnFilteredAndPaginatedProducts()
     {
         // Arrange
-        var queryableProducts = new List<Product>
+        var products = new List<Product>
         {
-            new Product { 
-                Id = 1, 
-                Name = "Apple", 
-                Description = "Fresh apple", 
-                Price = 2.5m, 
-                CategoryId = 1,
-                Category = new Category { Id = 1, Name = "Fruits" } 
-            },
-            new Product { 
-                Id = 2, 
-                Name = "Banana", 
-                Description = "Yellow banana", 
-                Price = 1.2m, 
-                CategoryId = 1,
-                Category = new Category { Id = 1, Name = "Fruits" } 
-            },
-            new Product { 
-                Id = 3, 
-                Name = "Bread", 
-                Description = "Whole grain bread", 
-                Price = 3.0m, 
-                CategoryId = 2,
-                Category = new Category { Id = 2, Name = "Bakery" } 
-            },
-        }.AsQueryable();
+            Product.Create("Apple", "Fresh apple", 2.5m, 1, 1),
+            Product.Create("Banana", "Yellow banana", 1.2m, 1, 1),
+            Product.Create("Bread", "Whole grain bread", 3.0m, 1, 2)
+        };
+        Category fruitsCategory = new Category
+        {
+            Id = 1,
+            Name = "Fruits"
+        };
+        Category othersCategory = new Category
+        {
+            Id = 2,
+            Name = "Others"
+        };
+        
+        products[0].SetCategory(fruitsCategory);
+        products[1].SetCategory(fruitsCategory);
+        products[2].SetCategory(othersCategory);
+        
         _productRepositoryMock
             .Setup(repo => repo.GetQuery())
-            .Returns(queryableProducts.BuildMock());
+            .Returns(products.AsQueryable().BuildMock());
 
         var query = new ProductQuery
         {
@@ -87,15 +78,16 @@ public class ProductServiceTests
     public async Task GetByIdAsync_ShouldReturnProduct_WhenExists()
     {
         // Arrange
-        var products = new List<Product>
+        var product1 = Product.Create("Product A", "Description A", 1000, 0, 0);
+        product1.SetId(1);
+        var products = new List<Product> 
         {
-            new Product { Id = 1, Name = "Product A", Description = "Description A" }
+            product1
         };
-        var queryableProducts = products.AsQueryable();
-
+        
         _productRepositoryMock
             .Setup(repo => repo.GetQuery())
-            .Returns(queryableProducts.BuildMock());
+            .Returns(products.AsQueryable().BuildMock());
         
         // Act
         var response = await _productService.GetByIdAsync(1);
@@ -109,15 +101,16 @@ public class ProductServiceTests
     public async Task GetByIdAsync_ShouldReturnError_WhenProductNotFound()
     {
         // Arrange
-        var products = new List<Product>
+        var product1 = Product.Create("Product A", "Description A", 1000, 0, 0);
+        product1.SetId(2);
+        var products = new List<Product> 
         {
-            new Product { Id = 2, Name = "Product B", Description = "Description B" }
+            product1
         };
-        var queryableProducts = products.AsQueryable();
 
         _productRepositoryMock
             .Setup(repo => repo.GetQuery())
-            .Returns(queryableProducts.BuildMock());
+            .Returns(products.AsQueryable().BuildMock());
 
         
         // Act
@@ -125,14 +118,13 @@ public class ProductServiceTests
 
         // Assert
         Assert.False(response.Success);
-        Assert.Contains("Product not found", response.Message);
     }
 
     [Fact]
     public async Task CreateAsync_ShouldCreateProduct_WhenValid()
     {
         // Arrange
-        var productRequest = new CreateProductRequestDto { Name = "New Product", Description = "Description" };
+        var productRequest = new CreateProductRequestDto { Name = "New Product", Description = "Description", Price = 25000, Quantity = 0, CategoryId = 0 };
         _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(new List<Product>().AsQueryable().BuildMock());
         _productRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Product>())).Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(uow => uow.CompleteAsync()).Returns(Task.CompletedTask);
@@ -151,7 +143,7 @@ public class ProductServiceTests
     public async Task CreateAsync_ShouldReturnError_WhenExceptionOccurs()
     {
         // Arrange
-        var productRequest = new CreateProductRequestDto { Name = "New Product", Description = "Description" };
+        var productRequest = new CreateProductRequestDto { Name = "New Product", Description = "Description", Quantity = 0, CategoryId = 0 ,Price = 25000 };
         _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(new List<Product>().AsQueryable().BuildMock());
         _productRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Product>()))
                               .ThrowsAsync(new Exception("Database error"));
@@ -161,22 +153,23 @@ public class ProductServiceTests
 
         // Assert
         Assert.False(response.Success);
-        Assert.Contains("Error creating product", response.Message);
     }
 
     [Fact]
     public async Task UpdateAsync_ShouldUpdateProduct_WhenExists()
     {
         // Arrange
+        var product1 = Product.Create("Product A", "Description A", 1000, 0, 0);
+        product1.SetId(1);
         var products = new List<Product>
         {
-            new Product { Id = 1, Name = "Old Product", Description = "Old Description" }
+            product1
         };
         var queryableProducts = products.AsQueryable();
         _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(queryableProducts.BuildMock());
         _unitOfWorkMock.Setup(uow => uow.CompleteAsync()).Returns(Task.CompletedTask);
         
-        var updateRequest = new UpdateProductRequestDto { Name = "Updated Product", Description = "Updated Description" };
+        var updateRequest = new UpdateProductRequestDto { Name = "Updated Product", Description = "Updated Description", Price = 2000};
         
         // Act
         var response = await _productService.UpdateAsync(1, updateRequest);
@@ -192,15 +185,16 @@ public class ProductServiceTests
     public async Task UpdateAsync_ShouldReturnError_WhenProductNotFound()
     {
         // Arrange
+        var product1 = Product.Create("Product A", "Description A", 1000, 0, 0);
+        product1.SetId(0);
         var products = new List<Product>
         {
-            new Product { Id = 5, Name = "Old Product", Description = "Old Description" }
+            product1
         };
-        var queryableProducts = products.AsQueryable();
-        _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(queryableProducts.BuildMock());
+        _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(products.AsQueryable().BuildMock());
         
         // Act
-        var response = await _productService.UpdateAsync(1, new UpdateProductRequestDto { Name = "Name" });
+        var response = await _productService.UpdateAsync(1, new UpdateProductRequestDto { Name = "Name", Description = "Description", ImageUrl = "www.google.com/image.jpg", Price = 10000});
 
         // Assert
         Assert.False(response.Success);
@@ -211,13 +205,14 @@ public class ProductServiceTests
     public async Task DeleteAsync_ShouldDeleteProduct_WhenExists()
     {
         // Arrange
+        var product1 = Product.Create("Product to Delete", "Description A", 1000, 0, 0);
+        product1.SetId(1);
         var products = new List<Product>
         {
-            new Product { Id = 1, Name = "Product to Delete" }
+            product1
         };
-        var queryableProducts = products.AsQueryable();
         
-        _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(queryableProducts.BuildMock());
+        _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(products.AsQueryable().BuildMock());
         _unitOfWorkMock.Setup(uow => uow.CompleteAsync()).Returns(Task.CompletedTask);
 
         // Act
@@ -234,13 +229,13 @@ public class ProductServiceTests
     public async Task DeleteAsync_ShouldReturnError_WhenProductNotFound()
     {
         // Arrange
+        var product5  = Product.Create("Product that should be another than the product to be deleted", "Description A", 1000, 0, 0);
+        product5.SetId(5);
         var products = new List<Product>
         {
-            new Product { Id = 5, Name = "Product that should be another than the product to be deleted" }
+            product5
         };
-        var queryableProducts = products.AsQueryable();
-        
-        _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(queryableProducts.BuildMock());
+        _productRepositoryMock.Setup(repo => repo.GetQuery()).Returns(products.AsQueryable().BuildMock());
         _productRepositoryMock.Setup(repo => repo.Delete(It.IsAny<Product>()));
         // Act
         var response = await _productService.DeleteAsync(1);

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BasicSupermarket.Domain.Dto;
+namespace BasicSupermarket.Domain.Dto.Product;
 
 public record UpdateProductRequestDto
 {
@@ -8,8 +8,8 @@ public record UpdateProductRequestDto
     public string Name { get; set; }
     [MinLength(20), MaxLength(200)]
     public string Description { get; set; }
-    [Required(ErrorMessage="Please add an image")]
+    [Url]
     public string ImageUrl { get; set; }
-    public long Price { get; set; }
-    public int CategoryId { get; set; }
+    public decimal Price { get; set; }
+    public int? CategoryId { get; set; }
 }

@@ -3,7 +3,6 @@ using System.Reflection;
 using BasicSupermarket.Domain.Repositories;
 using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Persistence.Repositories;
-using BasicSupermarket.Repositories;
 using BasicSupermarket.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -25,16 +24,12 @@ public static class ServiceCollectionExtension
         
         return services;
     }
-    
-    
-    
-    
+  
     public static IServiceCollection AddFluentValidation(this IServiceCollection services)
     {
         // Automatically register all validators from the assembly where this method is called
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         
-        // Optionally add FluentValidation's MVC integration
         services.AddFluentValidationAutoValidation();
 
         return services;

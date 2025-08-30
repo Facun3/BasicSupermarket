@@ -1,11 +1,11 @@
 using BasicSupermarket.Domain;
 using BasicSupermarket.Domain.Dto;
+using BasicSupermarket.Domain.Dto.Category;
 using BasicSupermarket.Domain.Entities;
 using BasicSupermarket.Domain.Repositories;
 using BasicSupermarket.Domain.Services;
 using BasicSupermarket.Domain.Services.Communication;
 using BasicSupermarket.Mapping;
-using BasicSupermarket.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace BasicSupermarket.Services;

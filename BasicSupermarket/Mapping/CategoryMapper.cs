@@ -1,4 +1,5 @@
 using BasicSupermarket.Domain.Dto;
+using BasicSupermarket.Domain.Dto.Category;
 using BasicSupermarket.Domain.Entities;
 
 namespace BasicSupermarket.Mapping;

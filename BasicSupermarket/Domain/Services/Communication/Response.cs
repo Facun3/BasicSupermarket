@@ -19,4 +19,9 @@ public class Response<T>
         Message = message;
         Resource = default;
     }
+    
+    public static Response<T> SuccessResponse(T resource) => new Response<T>(resource);
+
+    public static Response<T> FailureResponse(string message) => new Response<T>(message);
+
 }
