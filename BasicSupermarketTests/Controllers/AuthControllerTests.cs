@@ -10,23 +10,10 @@ namespace BasicSupermarketTests.Controllers;
 public class AuthControllerTests : TestBase
 {
     private readonly AuthController _controller;
-    private readonly Mock<IConfiguration> _configurationMock;
 
     public AuthControllerTests()
     {
-        _configurationMock = new Mock<IConfiguration>();
-        _configurationMock.Setup(x => x.GetSection("JwtSettings"))
-            .Returns(new Mock<IConfigurationSection>().Object);
-        _configurationMock.Setup(x => x.GetSection("JwtSettings:Secret"))
-            .Returns(new Mock<IConfigurationSection>().Object);
-        _configurationMock.Setup(x => x.GetSection("JwtSettings:Issuer"))
-            .Returns(new Mock<IConfigurationSection>().Object);
-        _configurationMock.Setup(x => x.GetSection("JwtSettings:Audience"))
-            .Returns(new Mock<IConfigurationSection>().Object);
-        _configurationMock.Setup(x => x.GetSection("JwtSettings:ExpirationMinutes"))
-            .Returns(new Mock<IConfigurationSection>().Object);
-
-        _controller = new AuthController(UserManagerMock.Object, _configurationMock.Object);
+        _controller = new AuthController(UserManagerMock.Object, ConfigurationMock.Object);
     }
 
     [Fact]
@@ -60,8 +47,9 @@ public class AuthControllerTests : TestBase
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var returnValue = Assert.IsType<dynamic>(okResult.Value);
-        Assert.NotNull(returnValue.token);
+        Assert.NotNull(okResult.Value);
+        var token = okResult.Value.GetType().GetProperty("token").GetValue(okResult.Value, null);
+        Assert.NotNull(token);
     }
 
     [Fact]
@@ -82,7 +70,7 @@ public class AuthControllerTests : TestBase
 
         // Assert
         var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-        var returnValue = Assert.IsType<dynamic>(unauthorizedResult.Value);
-        Assert.Equal("Invalid credentials", returnValue.message);
+        Assert.NotNull(unauthorizedResult.Value);
+        Assert.Equal("Invalid credentials", unauthorizedResult.Value.GetType().GetProperty("message").GetValue(unauthorizedResult.Value, null));
     }
-} 
+}

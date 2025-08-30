@@ -20,7 +20,7 @@ public class TestControllerTests
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var returnValue = Assert.IsType<dynamic>(okResult.Value);
+        dynamic returnValue = okResult.Value;
         Assert.Equal("API is running", returnValue.status);
     }
 } 

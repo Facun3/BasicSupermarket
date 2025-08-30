@@ -24,7 +24,7 @@ public class AuthController(UserManager<IdentityUser> userManager, IConfiguratio
         var token = GenerateJwtToken(user);
         return Ok(new { token });
     }
-    
+
     private string GenerateJwtToken(IdentityUser user)
     {
         var jwtSettings = configuration.GetSection("JwtSettings");
@@ -51,5 +51,5 @@ public class AuthController(UserManager<IdentityUser> userManager, IConfiguratio
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
+
 }

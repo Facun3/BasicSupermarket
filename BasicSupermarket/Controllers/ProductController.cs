@@ -10,7 +10,7 @@ namespace BasicSupermarket.Controllers;
 
 public class ProductController(IProductService productService): BaseApiController
 {
-    
+
     [HttpGet]
     [ProducesResponseType(typeof(QueryResponseDto<ProductResponseDto>), 200)]
     [ProducesResponseType(500)]

@@ -1,110 +1,117 @@
 # BasicSupermarket API
 
-Una API RESTful para la gestión de un supermercado, desarrollada con .NET 8.0. Este proyecto implementa funcionalidades para gestionar productos, categorías, carritos de compra y órdenes.
+A .NET Core Web API project that implements a basic supermarket management system with features for product management, shopping cart functionality, and user authentication.
 
-## 🚀 Características
-
-- Gestión de productos y categorías
-- Sistema de carrito de compras
-- Procesamiento de órdenes
-- Autenticación de usuarios
-- Manejo de errores centralizado
-- Tests unitarios
-- Documentación de API con Swagger
-- Containerización con Docker
-
-## 🛠️ Tecnologías
+## Technologies Used
 
 - .NET 8.0
 - Entity Framework Core
+- ASP.NET Core Identity
 - AutoMapper
-- Docker
-- GitHub Actions para CI/CD
+- xUnit for Testing
+- Docker support
 
-## 📋 Prerrequisitos
+## Features
 
-- .NET 8.0 SDK
-- Docker (opcional)
-- Un IDE como Visual Studio o Rider
+- Product Management
+  - Create, Read, Update, Delete (CRUD) operations
+  - Product categorization
+  - Product filtering and pagination
 
-## 🔧 Instalación y Ejecución
+- Shopping Cart
+  - Add/Remove items
+  - View cart contents
+  - Clear cart
 
-### Ejecución Local
+- Category Management
+  - CRUD operations for product categories
 
-1. Clonar el repositorio:
-```bash
-git clone [URL-del-repositorio]
-```
+- User Authentication
+  - JWT-based authentication
+  - User registration and login
 
-2. Navegar al directorio del proyecto:
-```bash
-cd BasicSupermarket
-```
+- Error Handling
+  - Global error handling middleware
+  - Standardized error responses
 
-3. Restaurar dependencias:
+## Project Structure
+
+- `BasicSupermarket/`
+  - `Controllers/` - API endpoints implementation
+  - `Domain/` - Business logic and entities
+  - `Services/` - Business logic implementation
+  - `Persistence/` - Database context and migrations
+  - `Dtos/` - Data Transfer Objects
+  - `Mapping/` - AutoMapper profiles
+
+- `BasicSupermarketTests/`
+  - Unit tests for controllers and services
+  - Integration tests
+
+## Getting Started
+
+1. Clone the repository
+2. Ensure you have .NET 8.0 SDK installed
+3. Install dependencies:
 ```bash
 dotnet restore
 ```
 
-4. Ejecutar el proyecto:
+4. Database Setup:
+```bash
+# Create a new migration
+dotnet ef migrations add InitialCreate --project BasicSupermarket
+
+# Apply migrations to the database
+dotnet ef database update --project BasicSupermarket
+```
+
+5. Run the application:
 ```bash
 dotnet run --project BasicSupermarket
 ```
 
-### Usando Docker
-
-1. Construir la imagen:
-```bash
-docker-compose build
-```
-
-2. Ejecutar los contenedores:
+6. For Docker deployment:
 ```bash
 docker-compose up
 ```
 
-## 🗄️ Estructura del Proyecto
+## Testing
 
-```
-BasicSupermarket/
-├── Controllers/        # Controladores de la API
-├── Domain/            # Entidades y lógica de dominio
-├── Services/          # Servicios de la aplicación
-├── Persistence/       # Acceso a datos y migraciones
-├── Dtos/             # Objetos de transferencia de datos
-├── Config/           # Configuraciones
-└── Mapping/          # Perfiles de AutoMapper
-```
-
-## 🔍 API Endpoints
-
-- `GET /api/products` - Obtener todos los productos
-- `GET /api/products/{id}` - Obtener un producto específico
-- `POST /api/products` - Crear un nuevo producto
-- `PUT /api/products/{id}` - Actualizar un producto
-- `DELETE /api/products/{id}` - Eliminar un producto
-
-Similar estructura para:
-- Categories (`/api/categories`)
-- Cart (`/api/cart`)
-- Orders (`/api/orders`)
-
-## 🧪 Tests
-
-Para ejecutar los tests:
-
+Run the tests using:
 ```bash
 dotnet test
 ```
 
-## 👥 Contribución
+## API Documentation
 
-1. Fork el proyecto
-2. Crea tu rama de feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+The API includes endpoints for:
 
-## 📄 Licencia
+- Authentication
+  - POST /api/auth/login
+  - POST /api/auth/register
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para más detalles.
+- Products
+  - GET /api/products
+  - GET /api/products/{id}
+  - POST /api/products
+  - PUT /api/products/{id}
+  - DELETE /api/products/{id}
+
+- Categories
+  - GET /api/categories
+  - POST /api/categories
+
+- Shopping Cart
+  - GET /api/cart
+  - POST /api/cart/add
+  - POST /api/cart/remove
+  - POST /api/cart/clear
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
